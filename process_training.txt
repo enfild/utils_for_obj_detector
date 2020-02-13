@@ -1,0 +1,40 @@
+TF1.15-GPU + CUDA10.0 + cudNN + python 3.7.6 + WIN64 + NVIDIA 1060 6GB
+LIBS:
+pip install pillow
+pip install lxml
+pip install Cython
+pip install contextlib2
+pip install jupyter
+pip install matplotlib
+pip install pandas
+pip install opencv-python
+
+\models\research
+SET PYTHONPATH:
+set PYTHONPATH=C:\tensorflow1\models;C:\tensorflow1\models\research;C:\tensorflow1\models\research\slim
+
+
+GENERATE PROTOC:
+protoc --python_out=. .\object_detection\protos\anchor_generator.proto .\object_detection\protos\argmax_matcher.proto .\object_detection\protos\bipartite_matcher.proto .\object_detection\protos\box_coder.proto .\object_detection\protos\box_predictor.proto .\object_detection\protos\eval.proto .\object_detection\protos\faster_rcnn.proto .\object_detection\protos\faster_rcnn_box_coder.proto .\object_detection\protos\grid_anchor_generator.proto .\object_detection\protos\hyperparams.proto .\object_detection\protos\image_resizer.proto .\object_detection\protos\input_reader.proto .\object_detection\protos\losses.proto .\object_detection\protos\matcher.proto .\object_detection\protos\mean_stddev_box_coder.proto .\object_detection\protos\model.proto .\object_detection\protos\optimizer.proto .\object_detection\protos\pipeline.proto .\object_detection\protos\post_processing.proto .\object_detection\protos\preprocessor.proto .\object_detection\protos\region_similarity_calculator.proto .\object_detection\protos\square_box_coder.proto .\object_detection\protos\ssd.proto .\object_detection\protos\ssd_anchor_generator.proto .\object_detection\protos\string_int_label_map.proto .\object_detection\protos\train.proto .\object_detection\protos\keypoint_box_coder.proto .\object_detection\protos\multiscale_anchor_generator.proto .\object_detection\protos\graph_rewriter.proto .\object_detection\protos\calibration.proto .\object_detection\protos\flexible_grid_anchor_generator.proto
+
+\models\research> python setup.py build
+
+\models\research> python setup.py install
+
+
+object_detection\
+TRAINING:
+python train.py --logtostderr \ --train_dir=training/ \ --pipeline_config_path=training\rfcn_resnet101_coco.config
+
+
+
+EVAL:
+python eval.py --logtostderr --eval_dir=eval --checkpoint_dir=training --pipeline_config_path=training\rfcn_resnet101_coco.config
+
+
+EXPORT:
+python export_inference_graph.py --input_type=image_tensor \ --pipeline_config_path=training/rfcn_resnet101_coco.config \ --trained_checkpoint_prefix=training/model.ckpt-XXXX \ --output_directory=inference_graph
+
+
+
+
