@@ -61,16 +61,20 @@ print("payload_size: {}".format(payload_size))
 NumbFrame = 0
 while True:
     start_time = datetime.now()
+    print('start')
     while len(data) < payload_size:
         print("Recv: {}".format(len(data)))
         data += conn.recv(4096)
     print("Done Recv: {}".format(len(data)))
+    print('time for recive SIZE DATA', datetime.now() - start_time)
     packed_msg_size = data[:payload_size]
     data = data[payload_size:]
     msg_size = struct.unpack(">L", packed_msg_size)[0]
     print("msg_size: {}".format(msg_size))
     while len(data) < msg_size:
         data += conn.recv(4096)
+    print('time for recive DATA', datetime.now() - start_time)
+
     frame_data = data[:msg_size]
     print('frame_data')
     data = data[msg_size:]
@@ -78,14 +82,13 @@ while True:
     # image = np.frombuffer(frame_data, np.uint8)
     image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
     print('Image loads')
-
+    print('time for recive img', datetime.now() - start_time)
 # if you use webcam(black and white):
 #     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
 #     print('DECODE SUCESFULL')
 
 # detect object
     image_expanded = np.expand_dims(image, axis=0)
-    print('time for recive img', datetime.now() - start_time)
     (boxes, scores, classes, num) = sess.run(
         [detection_boxes, detection_scores, detection_classes, num_detections],
         feed_dict={image_tensor: image_expanded})
@@ -99,6 +102,7 @@ while True:
         use_normalized_coordinates=True,
         line_thickness=3,
         min_score_thresh=0.50)
+# saver
     cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [NumbFrame]), image)
     # cv2.imshow('ImageWindow', image)
     NumbFrame += 1
