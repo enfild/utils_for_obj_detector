@@ -16,11 +16,10 @@ from utils import visualization_utils as vis_util
 print("start")
 MODEL_NAME = 'inference_graph'
 IMAGE_NAME = 'img'
-# for otnositelnih petey
+# for otnositelnih putey
 CWD_PATH = ''
 PATH_TO_CKPT = os.path.join(CWD_PATH, MODEL_NAME, 'frozen_inference_graph.pb')
 PATH_TO_LABELS = os.path.join(CWD_PATH, 'data', 'object-detection.pbtxt')
-PATH_TO_IMAGE = os.path.join(CWD_PATH, 'img')
 NUM_CLASSES = 2
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
@@ -42,18 +41,18 @@ detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
 detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 print('INIT TF DONE')
-PATH_TO_SAVE=input("Where save? : ")
-start_time = datetime.now()
+
+PATH_TO_SAVE = 'output1'
 #init serv
-HOST=''
-PORT=9090
-sock= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+HOST = ''
+PORT = 9090
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 print('Socket created')
-sock.bind((HOST,PORT))
+sock.bind((HOST, PORT))
 print('Socket bind complete')
-sock.listen(10)
+sock.listen(20)
 print('Socket now listening')
-conn,addr=sock.accept()
+conn, addr = sock.accept()
 print('KNOCK KNOCK')
 data = b""
 payload_size = struct.calcsize(">L")
@@ -61,6 +60,7 @@ print("payload_size: {}".format(payload_size))
 
 NumbFrame = 0
 while True:
+    start_time = datetime.now()
     while len(data) < payload_size:
         print("Recv: {}".format(len(data)))
         data += conn.recv(4096)
@@ -74,17 +74,21 @@ while True:
     frame_data = data[:msg_size]
     print('frame_data')
     data = data[msg_size:]
-    print('DATA LOADED')
-    # image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+    print('data load')
+    # image = np.frombuffer(frame_data, np.uint8)
+    image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
     print('Image loads')
-    image = cv2.imdecode(data, cv2.IMREAD_COLOR)
-    print('DECODE SUCESFULL')
+
+# if you use webcam(black and white):
+#     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+#     print('DECODE SUCESFULL')
+
 # detect object
     image_expanded = np.expand_dims(image, axis=0)
+    print('time for recive img', datetime.now() - start_time)
     (boxes, scores, classes, num) = sess.run(
         [detection_boxes, detection_scores, detection_classes, num_detections],
         feed_dict={image_tensor: image_expanded})
-    print(datetime.now() - start_time)
 # drawer
     vis_util.visualize_boxes_and_labels_on_image_array(
         image,
@@ -94,9 +98,11 @@ while True:
         category_index,
         use_normalized_coordinates=True,
         line_thickness=3,
-        min_score_thresh=0.20)
-    cv2.imwrite(os.path.join(PATH_TO_SAVE, NumbFrame.jpg), image)
+        min_score_thresh=0.50)
+    cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [NumbFrame]), image)
+    # cv2.imshow('ImageWindow', image)
     NumbFrame += 1
-# conn.close()
+    print('Time for one cycle: ', datetime.now() - start_time)
+conn.close()
 
 

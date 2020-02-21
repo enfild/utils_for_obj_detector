@@ -14,10 +14,12 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('localhost', 9090))
 connection = client_socket.makefile('wb')
 
+
+
 IMAGE_NAME = 'img'
 
 PATH_TO_IMAGE = os.path.join(CWD_PATH, 'img')
-
+DELAY_START = int(input('delay start: '))
 while True:
     img_counter = 0
     with os.scandir(PATH_TO_IMAGE) as entries:
@@ -30,5 +32,10 @@ while True:
             size = len(data)
             print("{}: {}".format(img_counter, size))
             client_socket.sendall(struct.pack(">L", size) + data)
-            img_counter += 1
+#give time for init Graph
+            if(img_counter == 0):
+                time.sleep(DELAY_START)
+                img_counter += 1
+            else:
+                img_counter += 1
 connection.close()
