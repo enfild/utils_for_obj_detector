@@ -41,9 +41,13 @@ detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
 detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 print('INIT TF DONE')
-
 PATH_TO_SAVE = 'output1'
+
 #init serv
+METHOD_RECEPTION = int(input('Reception method(0 - independ client, 1 - webcam): '))
+METHOD_PROCESSING = int(input('Processing method(0 - SQUARE, 1 - SEOQL): '))
+METHOD_SAVING = int(input('SAVING METHOD(0 - on disk, 1 - sender): '))
+
 HOST = ''
 PORT = 9090
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -57,8 +61,8 @@ print('KNOCK KNOCK')
 data = b""
 payload_size = struct.calcsize(">L")
 print("payload_size: {}".format(payload_size))
-
 NumbFrame = 0
+# cycle for recive and processing img
 while True:
     start_time = datetime.now()
     print('start')
@@ -72,41 +76,76 @@ while True:
     msg_size = struct.unpack(">L", packed_msg_size)[0]
     print("msg_size: {}".format(msg_size))
     while len(data) < msg_size:
-        data += conn.recv(4096)
+        data += conn.recv(1024000)
     print('time for recive DATA', datetime.now() - start_time)
 
+    ARROW_TIME = datetime.now()
     frame_data = data[:msg_size]
     print('frame_data')
     data = data[msg_size:]
     print('data load')
+    print('ARROW_TIME: ', ARROW_TIME)
+
+    start_pickle_load_time = datetime.now()
     # image = np.frombuffer(frame_data, np.uint8)
     image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+    print('time PIKLE LOAD IMG: ', datetime.now() - start_pickle_load_time)
     print('Image loads')
     print('time for recive img', datetime.now() - start_time)
-# if you use webcam(black and white):
-#     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
-#     print('DECODE SUCESFULL')
+
+# if you use webcam(black and white - GRAYSKALE)
+    if(METHOD_RECEPTION == 1):
+        image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+        print('DECODE SUCESFULL')
 
 # detect object
     image_expanded = np.expand_dims(image, axis=0)
     (boxes, scores, classes, num) = sess.run(
         [detection_boxes, detection_scores, detection_classes, num_detections],
         feed_dict={image_tensor: image_expanded})
-# drawer
-    vis_util.visualize_boxes_and_labels_on_image_array(
-        image,
-        np.squeeze(boxes),
-        np.squeeze(classes).astype(np.int32),
-        np.squeeze(scores),
-        category_index,
-        use_normalized_coordinates=True,
-        line_thickness=3,
-        min_score_thresh=0.50)
-# saver
-    cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [NumbFrame]), image)
-    # cv2.imshow('ImageWindow', image)
+
+# drawer of square
+    if(METHOD_PROCESSING == 0):
+        vis_util.visualize_boxes_and_labels_on_image_array(
+            image,
+            np.squeeze(boxes),
+            np.squeeze(classes).astype(np.int32),
+            np.squeeze(scores),
+            category_index,
+            use_normalized_coordinates=True,
+            line_thickness=3,
+            min_score_thresh=0.50)
+
+#definer center if cath
+    elif (METHOD_PROCESSING == 1):
+        scores = np.squeeze(scores)
+        boxes = np.squeeze(boxes)
+        classes = np.squeeze(classes)
+        max_boxes_to_draw = boxes.shape[0]
+        height = image.shape[0]
+        width = image.shape[1]
+        for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+            if scores is None or scores[i] > 0.5:
+                if classes[i] == 2:
+                    box = tuple(boxes[i].tolist())
+                    ymin, xmin, ymax, xmax = box
+                    center_coordinates = (int((xmax * height + xmin * height) / 2), int((ymax * width + ymin * width) / 2))
+                    print(center_coordinates)
+    else:
+        print('check METHOD_PROCESSING')
+        conn.close()
+
+# saver or sender
+#   cv2.imshow('ImageWindow', image)
+    if(METHOD_SAVING == 0):
+        cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [datetime.now(), NumbFrame]), image)
+    elif (METHOD_SAVING == 1):
+        start_send_time = datetime.now()
+        conn.sendall(center_coordinates)
+        print('SEND_TIME: ', datetime.now() - start_send_time)
+    else:
+        print('check METHOD_SAVING')
+        conn.close()
     NumbFrame += 1
     print('Time for one cycle: ', datetime.now() - start_time)
 conn.close()
-
-

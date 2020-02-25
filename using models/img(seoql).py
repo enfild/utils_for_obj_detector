@@ -1,21 +1,4 @@
-######## Image Object Detection Using Tensorflow-trained Classifier #########
-#
-# Author: Evan Juras
-# Date: 1/15/18
-# Description: 
-# This program uses a TensorFlow-trained neural network to perform object detection.
-# It loads the classifier and uses it to perform object detection on an image.
-# It draws boxes, scores, and labels around the objects of interest in the image.
 
-## Some of the code is copied from Google's example at
-## https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
-
-## and some is copied from Dat Tran's example at
-## https://github.com/datitran/object_detector_app/blob/master/object_detection_app.py
-
-## but I changed it to make it more understandable to me.
-
-# Import packages
 import os
 import cv2
 import numpy as np
@@ -24,38 +7,23 @@ import sys
 from datetime import datetime
 import time
 
-# This is needed since the notebook is stored in the object_detection folder.
-#sys.path.append("..")
-
 # Import utilites
 from utils import label_map_util
 from utils import visualization_utils as vis_util
 
-# Name of the directory containing the object detection module we're using
 MODEL_NAME = 'inference_graph'
 IMAGE_NAME = 'img'
 
-# Grab path to current working directory
 CWD_PATH = ''
 
-# Path to frozen detection graph .pb file, which contains the model that is used
-# for object detection.
 PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,'frozen_inference_graph.pb')
 
-# Path to label map file
 PATH_TO_LABELS = os.path.join(CWD_PATH,'training','object-detection.pbtxt')
 
-# Path to image
 PATH_TO_IMAGE = os.path.join(CWD_PATH,'img')
 
-# Number of classes the object detector can identify
 NUM_CLASSES = 2
 
-# Load the label map.
-# Label maps map indices to category names, so that when our convolution
-# network predicts `5`, we know that this corresponds to `king`.
-# Here we use internal utility functions, but anything that returns a
-# dictionary mapping integers to appropriate string labels would be fine
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
@@ -92,10 +60,10 @@ start_time = datetime.now()
 PATH_TO_SAVE='output'
 with os.scandir(PATH_TO_IMAGE) as entries:
     for entry in entries:
-        
-        
+
+
         print(entry.name)
-        
+
         image = cv2.imread(os.path.join(PATH_TO_IMAGE,entry.name))
         start_time = datetime.now()
         image_expanded = np.expand_dims(image, axis=0)
@@ -118,11 +86,11 @@ with os.scandir(PATH_TO_IMAGE) as entries:
                 if classes[i]==2:
                     box = tuple(boxes[i].tolist())
                     ymin, xmin, ymax, xmax = box
-                    start_point = (int(xmin*height), int(ymin*width)) 
-                    end_point = (int(xmax*height), int(ymax*width)) 
-                    color = (255, 0, 0) 
+                    start_point = (int(xmin*height), int(ymin*width))
+                    end_point = (int(xmax*height), int(ymax*width))
+                    color = (255, 0, 0)
                     center_coordinates=(int((xmax*height+xmin*height)/2),int((ymax*width+ymin*width)/2))
                     print ( center_coordinates)
-                #image = cv2.rectangle(image, start_point, end_point, color, 3) 
-                    image = cv2.circle(image, center_coordinates, 15, color, 3) 
+                #image = cv2.rectangle(image, start_point, end_point, color, 3)
+                    image = cv2.circle(image, center_coordinates, 15, color, 3)
         cv2.imwrite(os.path.join(PATH_TO_SAVE,entry.name), image)
