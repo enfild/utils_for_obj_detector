@@ -9,12 +9,13 @@ import time
 import pickle
 import struct
 import socket
-import asyncio
 
+from threading import Thread
 from queue import Queue
 from utils import label_map_util
 from utils import visualization_utils as vis_util
-print("start")
+
+
 #________________________INIT_____________________________
 MODEL_NAME = 'inference_graph'
 IMAGE_NAME = 'img'
@@ -44,9 +45,6 @@ detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 print('INIT TF DONE')
 PATH_TO_SAVE = 'output1'
-
-q=Queue()
-
 #_____________________INIT SOCKET-SERV__________________________
 METHOD_RECEPTION = int(input('Reception method(0 - independ client, 1 - webcam): '))
 METHOD_PROCESSING = int(input('Processing method(0 - SQUARE, 1 - SEOQL): '))
@@ -61,18 +59,18 @@ sock.listen(20)
 print('Socket now listening')
 conn, addr = sock.accept()
 print('KNOCK KNOCK')
-data = b""
 payload_size = struct.calcsize(">L")
 print("payload_size: {}".format(payload_size))
-NumbFrame = 0
+
+q = Queue()
 
 
 #_____________________________DEFS__________________________________
-
 # cycle for recive and processing img
-
-async def get_img():
+def get_img():
+    data = b""
     while True:
+        print('start get_img')
         start_time = datetime.now()
         while len(data) < payload_size:
             data += conn.recv(4096)
@@ -80,74 +78,83 @@ async def get_img():
         data = data[payload_size:]
         msg_size = struct.unpack(">L", packed_msg_size)[0]
         while len(data) < msg_size:
-            data += conn.recv(1024000)
+            data += conn.recv(2024000)
         frame_data = data[:msg_size]
         data = data[msg_size:]
-        # image = np.frombuffer(frame_data, np.uint8)
         image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
     # if you use webcam(black and white - GRAYSKALE)
-        if(METHOD_RECEPTION == 1):
-            image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
-            q.put(image)
+        # if(METHOD_RECEPTION == 1):
+        #     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+        q.put(image)
         print('Time for recive: ', datetime.now() - start_time)
+        # PROC_TH = Thread(target = processing_IMG, args = (image))
+        # print('PROC TH init')
+        # PROC_TH.start()
 
-
-
-
-async def processing_IMG():
-    start_time = datetime.now()
+def processing_IMG():
+    NumbFrame = 0
+    avg_time = 0
+    print('start PROCCESSING')
     while True:
         if q.empty():
+            # print('queue is empty, but i rot tvoy shatal 228')
             continue
-        image = q.get()
+        image1 = q.get()
 # detect object
-        image_expanded = np.expand_dims(image, axis=0)
+        print('QUEUEEUEUEUEUEEU')
+        start_time1 = datetime.now()
+        image_expanded = np.expand_dims(image1, axis=0)
         (boxes, scores, classes, num) = sess.run(
             [detection_boxes, detection_scores, detection_classes, num_detections],
             feed_dict={image_tensor: image_expanded})
 # drawer of square
-    if(METHOD_PROCESSING == 0):
-        vis_util.visualize_boxes_and_labels_on_image_array(
-            image,
-            np.squeeze(boxes),
-            np.squeeze(classes).astype(np.int32),
-            np.squeeze(scores),
-            category_index,
-            use_normalized_coordinates=True,
-            line_thickness=3,
-            min_score_thresh=0.50)
+        if(METHOD_PROCESSING == 0):
+            vis_util.visualize_boxes_and_labels_on_image_array(
+                image1,
+                np.squeeze(boxes),
+                np.squeeze(classes).astype(np.int32),
+                np.squeeze(scores),
+                category_index,
+                use_normalized_coordinates=True,
+                line_thickness=3,
+                min_score_thresh=0.50)
 #definer center if cath
-    elif (METHOD_PROCESSING == 1):
-        scores = np.squeeze(scores)
-        boxes = np.squeeze(boxes)
-        classes = np.squeeze(classes)
-        max_boxes_to_draw = boxes.shape[0]
-        height = image.shape[0]
-        width = image.shape[1]
-        for i in range(min(max_boxes_to_draw, boxes.shape[0])):
-            if scores is None or scores[i] > 0.5:
-                if classes[i] == 2:
-                    box = tuple(boxes[i].tolist())
-                    ymin, xmin, ymax, xmax = box
-                    center_coordinates = (int((xmax * height + xmin * height) / 2), int((ymax * width + ymin * width) / 2))
-                    print(center_coordinates)
-    else:
-        print('check METHOD_PROCESSING')
-        conn.close()
+        elif (METHOD_PROCESSING == 1):
+            scores = np.squeeze(scores)
+            boxes = np.squeeze(boxes)
+            classes = np.squeeze(classes)
+            max_boxes_to_draw = boxes.shape[0]
+            height = image1.shape[0]
+            width = image1.shape[1]
+            for i in range(min(max_boxes_to_draw, boxes.shape[0])):
+                if scores is None or scores[i] > 0.5:
+                    if classes[i] == 2:
+                        box = tuple(boxes[i].tolist())
+                        ymin, xmin, ymax, xmax = box
+                        center_coordinates = (int((xmax * height + xmin * height) / 2), int((ymax * width + ymin * width) / 2))
+                        print(center_coordinates)
+        else:
+            print('check METHOD_PROCESSING')
+            conn.close()
 # saver or sender
-#   cv2.imshow('ImageWindow', image)
-    if(METHOD_SAVING == 0):
-        cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [datetime.now(), NumbFrame]), image)
-    elif (METHOD_SAVING == 1):
-        conn.sendall(center_coordinates)
-    else:
-        print('check METHOD_SAVING')
-        conn.close()
-    NumbFrame += 1
-    print('Time for one cycle: ', datetime.now() - start_time)
-
-async def main():
-
+        if(METHOD_SAVING == 0):
+            cv2.imwrite('{}/{}.png'.format(PATH_TO_SAVE, [datetime.now(), NumbFrame]), image1)
+        elif (METHOD_SAVING == 1):
+            conn.sendall(center_coordinates)
+        else:
+            print('check METHOD_SAVING')
+            conn.close()
+        NumbFrame += 1
+        print('Time for one cycle: ', datetime.now() - start_time1)
+        # avg_time = avg_time * 0.8 + 0.2 * float(datetime.now()-start_time1)
+        # print(avg_time)
 
 
 if __name__ == "__main__":
+    print("start")
+    GET_TH = Thread(target = get_img, args = ())
+    GET_TH.start()
+    print('GET TH started')
+    PROC_TH = Thread(target = processing_IMG, args = ())
+    PROC_TH.start()
+
