@@ -28,6 +28,11 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
+# Uncomment to using RTX 2060-2070. problems with memory allocation
+# config = tf.compat.v1.ConfigProto()
+# config.gpu_options.allow_growth = True
+# sess = tf.compat.v1.Session(config=config)
+
 # Load the Tensorflow model into memory.
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -60,10 +65,7 @@ start_time = datetime.now()
 PATH_TO_SAVE='output'
 with os.scandir(PATH_TO_IMAGE) as entries:
     for entry in entries:
-
-
         print(entry.name)
-
         image = cv2.imread(os.path.join(PATH_TO_IMAGE,entry.name))
         start_time = datetime.now()
         image_expanded = np.expand_dims(image, axis=0)

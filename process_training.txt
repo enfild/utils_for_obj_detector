@@ -1,4 +1,4 @@
-TF1.15-GPU + CUDA10.0 + cudNN + python 3.7.6 + WIN64 + NVIDIA 1060 6GB + installpackForJentelmen
+TF1.15-GPU + CUDA10.0 + cudNNv7.6.4.38 + python 3.7.6 + WIN64 + NVIDIA 1060 6GB + installpackForJentelmen
 
 TFcsv(xml->csv)
 TFrecord(csv->record)
