@@ -82,6 +82,8 @@ def get_img():
         frame_data = data[:msg_size]
         data = data[msg_size:]
         image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+        # image = np.frombuffer(frame_data, np.uint16)
+
     # if you use webcam(black and white - GRAYSKALE)
         # if(METHOD_RECEPTION == 1):
         #     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
