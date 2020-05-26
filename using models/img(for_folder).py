@@ -32,6 +32,9 @@ category_index = label_map_util.create_category_index(categories)
 # config.gpu_options.allow_growth = True
 # sess = tf.compat.v1.Session(config=config)
 
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_visible_devices(gpus[1], 'GPU')
+
 # Load the Tensorflow model into memory.
 detection_graph = tf.Graph()
 with detection_graph.as_default():
