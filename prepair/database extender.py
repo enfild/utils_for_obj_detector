@@ -7,6 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pathlib
 
+import xml.etree.ElementTree as ET
+import lxml
+from lxml import etree
 from xml.dom import minidom
 
 from datetime import datetime
@@ -42,12 +45,50 @@ def noisy(noise_typ,image):
         noisy = image + image * gauss
         return noisy
 
+
+def xml_create(path, mode):
+    xml_list = []
+
+    tree = ET.parse(path)
+    root = tree.getroot()
+    source_file = root.find('filename').text
+    print('source_file: ')
+    print(source_file)
+
+    output_file = source_file[0:-4] + mode + ".xml"
+    print(output_file)
+    tree.write(output_file)
+
+    # for member in root.findall('object'):
+    #     value = (root.find('filename').text,
+    #              int(root.find('size')[0].text),
+    #              int(root.find('size')[1].text),
+    #              member[0].text,
+    #              int(member[4][0].text),
+    #              int(member[4][1].text),
+    #              int(member[4][2].text),
+    #              int(member[4][3].text)
+    #              )
+    #     open(PATH_TO_XML)
+
+    #         xml_Doc = etree.parse(PATH_TO_XML)
+    #         root = xml_Doc.getroot()
+
+    #         nodes = xml_Doc.xpath('/annotation/os/item')
+
+
+    #         annotation = etree.Element("annotation")
+    #         filename = str(etree.SubElement(annotation, "filename"))
+    #         path = str(etree.SubElement(annotation, "path"))
+    #         print(filename, path)
+
+
+
 start_time = datetime.now()
 CWD_PATH = ""
 PATH_TO_IMAGE = os.path.join(CWD_PATH, "img")
 PATH_TO_SAVE = "output"
 mode_name = input('mode: ')
-dom = minidom.parse()
 with os.scandir(PATH_TO_IMAGE) as entries:
     Numb_img = 0
     for entry in entries:
@@ -57,20 +98,17 @@ with os.scandir(PATH_TO_IMAGE) as entries:
         if extension == ".png" or extension == ".jpg":
             # my_file_path[:-1]
             name_xml_file = str(entry.name[0:-3] + "xml")
-            print (name_xml_file)
 
-            for xml_element in os.scandir(PATH_TO_IMAGE):
-                if xml_element.is_file():
-                    if xml_element.name == name_xml_file:
-                        print("JOPA: " + xml_element.name)
-                        dom = minidom.parse(xml_element.name)
+            PATH_TO_XML = os.path.join(CWD_PATH, PATH_TO_IMAGE, name_xml_file)
 
+            # print (PATH_TO_XML)
             image = cv2.imread(os.path.join(PATH_TO_IMAGE, entry.name))
             start_time = datetime.now()
         
             if mode_name == "proc":  
                 #negativ  
                 neg_image = (255-image)
+                xml_create(PATH_TO_XML, "_neg")
                 cv2.imwrite(os.path.join(PATH_TO_SAVE, "neg_" + entry.name), neg_image)
 
                 #Brigthness + 30 
@@ -124,7 +162,7 @@ with os.scandir(PATH_TO_IMAGE) as entries:
                 print("make your choice")
 
         else:
-            print(" hren' ")
+            print("   queue XML ")
     
         Numb_img += 1
         print(datetime.now() - start_time)
