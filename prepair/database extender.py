@@ -38,21 +38,6 @@ def noisy(noise_typ,image):
         noisy = image + image * gauss
         return noisy
 
-def xml_edit_for_shift(mode, root):
-
-    width = 1024
-    height = 1024
-
-    for elem in root.iter('width'):
-        width = int(elem.text)
-        print(width)
-
-    for elem in root.iter('height'):
-        height = int(elem.text)
-        print(height)
-
-    # for elem in root.iter('xmin'):
-    #     print(elem.text + "width")
 
 def xml_create(path, mode_name, mode):
     tree = ET.parse(path)
@@ -64,12 +49,73 @@ def xml_create(path, mode_name, mode):
         elem.text = mode + source_file
 
     if(mode_name == "flip"):
-        xml_edit_for_shift(mode, root)
+        width = 1024
+        height = 1024
 
-    output_file = mode + source_file[0:-4] + ".xml"
-    print("output_file: ")
-    print(output_file)
-    tree.write(output_file)
+        for elem in root.iter('width'):
+            width = int(elem.text)
+            print(width)
+
+        for elem in root.iter('height'):
+            height = int(elem.text)
+            print(height)
+
+        if(mode == "hor_"):
+            for elem in root.iter('xmin'):
+                new_xmin = width - int(elem.text)
+                elem.text = str(new_xmin)
+                print(new_xmin)
+
+            for elem in root.iter('xmax'):
+                new_xmax = width - int(elem.text)
+                elem.text = str(new_xmax)
+                print(new_xmax)
+
+        elif(mode == "ver_"):
+            for elem in root.iter('ymin'):
+                new_ymin = height - int(elem.text)
+                elem.text = str(new_ymin)
+                print(new_ymin)
+
+            for elem in root.iter('ymax'):
+                new_ymax = height - int(elem.text)
+                elem.text = str(new_ymax)
+                print(new_ymax)
+
+        elif(mode == "bot_"):
+            for elem in root.iter('xmin'):
+                new_xmin = width - int(elem.text)
+                elem.text = str(new_xmin)
+                print(new_xmin)
+
+            for elem in root.iter('xmax'):
+                new_xmax = width - int(elem.text)
+                elem.text = str(new_xmax)
+                print(new_xmax)
+
+            for elem in root.iter('ymin'):
+                new_ymin = height - int(elem.text)
+                elem.text = str(new_ymin)
+                print(new_ymin)
+
+            for elem in root.iter('ymax'):
+                new_ymax = height - int(elem.text)
+                elem.text = str(new_ymax)
+                print(new_ymax)
+
+        output_file = mode + source_file[0:-4] + ".xml"
+        print("output_file: ")
+        print(output_file)
+        tree.write(output_file)
+
+    elif(mode_name == "proc"):
+        output_file = mode + source_file[0:-4] + ".xml"
+        print("output_file: ")
+        print(output_file)
+        tree.write(output_file)
+
+    else:
+        print("MODE NAME IS INCORRECT!")
 
 start_time = datetime.now()
 CWD_PATH = ""
@@ -95,7 +141,7 @@ with os.scandir(PATH_TO_IMAGE) as entries:
             if mode_name == "proc":  
                 #negativ  
                 # neg_image = (255-image)
-                # xml_create(PATH_TO_XML, "neg_")
+                # xml_create(PATH_TO_XML, mode_name, "neg_")
                 # cv2.imwrite(os.path.join(PATH_TO_SAVE, "neg_" + entry.name), neg_image)
 
                 #Brigthness + 30 
