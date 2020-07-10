@@ -62,7 +62,7 @@ detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
 start_time = datetime.now()
-PATH_TO_SAVE='output'
+PATH_TO_SAVE='output1'
 with os.scandir(PATH_TO_IMAGE) as entries:
     for entry in entries:
         print(entry.name)
