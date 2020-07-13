@@ -10,7 +10,6 @@ start_time = datetime.now()
 CWD_PATH = ""
 PATH_TO_IMAGE = os.path.join(CWD_PATH, "test")
 PATH_TO_SAVE = "output"
-# mode_name = input('mode: ')
 
 old_width = 0
 old_height = 0
@@ -36,22 +35,22 @@ def xml_create(path):
         elem.text = str(height)
 
     for elem in root.iter('xmin'):
-        new_xmin = int(elem.text) / (width / old_width)
+        new_xmin = int(elem.text) * (width / old_width)
         elem.text = str(new_xmin)
         print(new_xmin)
 
     for elem in root.iter('xmax'):
-        new_xmax = int(elem.text) / (width / old_width)
+        new_xmax = int(elem.text) * (width / old_width)
         elem.text = str(new_xmax)
         print(new_xmax)
 
     for elem in root.iter('ymin'):
-        new_ymin = int(elem.text) / (height / old_height)
+        new_ymin = int(elem.text) * (height / old_height)
         elem.text = str(new_ymin)
         print(new_ymin)
 
     for elem in root.iter('ymax'):
-        new_ymax = int(elem.text) / (height / old_height)
+        new_ymax = int(elem.text) * (height / old_height)
         elem.text = str(new_ymax)
         print(new_ymax)
 
@@ -59,8 +58,6 @@ def xml_create(path):
     print("output_file: ")
     print(output_file)
     tree.write(output_file)
-
-
 
 
 with os.scandir(PATH_TO_IMAGE) as entries:
@@ -86,5 +83,4 @@ with os.scandir(PATH_TO_IMAGE) as entries:
         else:
             print("   queue XML ")
     
-        # Numb_img += 1
         print(datetime.now() - start_time)
