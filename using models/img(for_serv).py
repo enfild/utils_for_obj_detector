@@ -87,16 +87,16 @@ def get_img():
         frame_data = data[:msg_size]
         data = data[msg_size:]
         image = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
-        # image = np.frombuffer(frame_data, np.uint16)
+        image = np.frombuffer(frame_data, np.uint16)
 
-    # if you use webcam(black and white - GRAYSKALE)
-        # if(METHOD_RECEPTION == 1):
-        #     image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+    if you use webcam(black and white - GRAYSKALE)
+        if(METHOD_RECEPTION == 1):
+            image = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
         q.put(image)
         print('Time for recive: ', datetime.now() - start_time)
-        # PROC_TH = Thread(target = processing_IMG, args = (image))
-        # print('PROC TH init')
-        # PROC_TH.start()
+        PROC_TH = Thread(target = processing_IMG, args = (image))
+        print('PROC TH init')
+        PROC_TH.start()
 
 def processing_IMG():
     NumbFrame = 0
@@ -104,7 +104,7 @@ def processing_IMG():
     print('start PROCCESSING')
     while True:
         if q.empty():
-            # print('queue is empty, but i rot tvoy shatal 228')
+            # print('queue is empty')
             continue
         image1 = q.get()
 # detect object

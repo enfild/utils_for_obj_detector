@@ -6,8 +6,6 @@ import tensorflow as tf
 import sys
 from datetime import datetime
 import time
-
-# Import utilites
 from utils import label_map_util
 from utils import visualization_utils as vis_util
 
@@ -28,12 +26,6 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-# Uncomment to using RTX 2060-2070. problems with memory allocation
-# config = tf.compat.v1.ConfigProto()
-# config.gpu_options.allow_growth = True
-# sess = tf.compat.v1.Session(config=config)
-
-# Load the Tensorflow model into memory.
 detection_graph = tf.Graph()
 with detection_graph.as_default():
     od_graph_def = tf.GraphDef()
@@ -43,22 +35,10 @@ with detection_graph.as_default():
         tf.import_graph_def(od_graph_def, name='')
 
     sess = tf.Session(graph=detection_graph)
-
-# Define input and output tensors (i.e. data) for the object detection classifier
-
-# Input tensor is the image
 image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-
-# Output tensors are the detection boxes, scores, and classes
-# Each box represents a part of the image where a particular object was detected
 detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-
-# Each score represents level of confidence for each of the objects.
-# The score is shown on the result image, together with the class label.
 detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
 detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-
-# Number of objects detected
 num_detections = detection_graph.get_tensor_by_name('num_detections:0')
 
 start_time = datetime.now()
