@@ -1,42 +1,50 @@
 TF1.15-GPU + CUDA10.0 + cudNNv7.6.4.38 + python 3.7.6 + WIN64 + NVIDIA 1060 6GB + installpackForJentelmen
 
 TFcsv(xml->csv)
-TFrecord(csv->record)
-python generate_tfrecord.py --csv_input=data\train_labels.csv --output_path=data\train.record --image_dir=images\train
 
-python generate_tfrecord.py --csv_input=data\test_labels.csv --output_path=data\test.record --image_dir=images\test
+
+TFrecord(csv->record):
+	python generate_tfrecord.py --csv_input=data\train_labels.csv --output_path=data\train.record --image_dir=images\train
+
+	python generate_tfrecord.py --csv_input=data\test_labels.csv --output_path=data\test.record --image_dir=images\test
 
 \models\research
 SET PYTHONPATH:
-set PYTHONPATH=C:\neuronet\models;C:\neuronet\models\research;C:\neuronet\models\research\slim
+	set PYTHONPATH=C:\neuronet\models;C:\neuronet\models\research;C:\neuronet\models\research\slim
 
 
-GENERATE PROTOC:
-protoc --python_out=. .\object_detection\protos\anchor_generator.proto .\object_detection\protos\argmax_matcher.proto .\object_detection\protos\bipartite_matcher.proto .\object_detection\protos\box_coder.proto .\object_detection\protos\box_predictor.proto .\object_detection\protos\eval.proto .\object_detection\protos\faster_rcnn.proto .\object_detection\protos\faster_rcnn_box_coder.proto .\object_detection\protos\grid_anchor_generator.proto .\object_detection\protos\hyperparams.proto .\object_detection\protos\image_resizer.proto .\object_detection\protos\input_reader.proto .\object_detection\protos\losses.proto .\object_detection\protos\matcher.proto .\object_detection\protos\mean_stddev_box_coder.proto .\object_detection\protos\model.proto .\object_detection\protos\optimizer.proto .\object_detection\protos\pipeline.proto .\object_detection\protos\post_processing.proto .\object_detection\protos\preprocessor.proto .\object_detection\protos\region_similarity_calculator.proto .\object_detection\protos\square_box_coder.proto .\object_detection\protos\ssd.proto .\object_detection\protos\ssd_anchor_generator.proto .\object_detection\protos\string_int_label_map.proto .\object_detection\protos\train.proto .\object_detection\protos\keypoint_box_coder.proto .\object_detection\protos\multiscale_anchor_generator.proto .\object_detection\protos\graph_rewriter.proto .\object_detection\protos\calibration.proto .\object_detection\protos\flexible_grid_anchor_generator.proto
+GENERATE PROTOC FOR TF 1.15:
+	protoc --python_out=. .\object_detection\protos\anchor_generator.proto .\object_detection\protos\argmax_matcher.proto .\object_detection\protos\bipartite_matcher.proto .\object_detection\protos\box_coder.proto .\object_detection\protos\box_predictor.proto .\object_detection\protos\eval.proto .\object_detection\protos\faster_rcnn.proto .\object_detection\protos\faster_rcnn_box_coder.proto .\object_detection\protos\grid_anchor_generator.proto .\object_detection\protos\hyperparams.proto .\object_detection\protos\image_resizer.proto .\object_detection\protos\input_reader.proto .\object_detection\protos\losses.proto .\object_detection\protos\matcher.proto .\object_detection\protos\mean_stddev_box_coder.proto .\object_detection\protos\model.proto .\object_detection\protos\optimizer.proto .\object_detection\protos\pipeline.proto .\object_detection\protos\post_processing.proto .\object_detection\protos\preprocessor.proto .\object_detection\protos\region_similarity_calculator.proto .\object_detection\protos\square_box_coder.proto .\object_detection\protos\ssd.proto .\object_detection\protos\ssd_anchor_generator.proto .\object_detection\protos\string_int_label_map.proto .\object_detection\protos\train.proto .\object_detection\protos\keypoint_box_coder.proto .\object_detection\protos\multiscale_anchor_generator.proto .\object_detection\protos\graph_rewriter.proto .\object_detection\protos\calibration.proto .\object_detection\protos\flexible_grid_anchor_generator.proto
 
-\models\research> python setup.py build
+	\models\research> python setup.py build
 
-\models\research> python setup.py install
+	\models\research> python setup.py install
 
+GENERATE PROTOC FOR TF 2.2:
+	protoc object_detection/protos/*.proto --python_out=.
+	# Install TensorFlow Object Detection API.
+	cp object_detection/packages/tf2/setup.py .
+	python -m pip install .
+
+TEST FOR TF2.2
+	python object_detection/builders/model_builder_tf2_test.py
 
 object_detection\
 TRAINING:
-python train.py --logtostderr \ --train_dir=training/ \ --pipeline_config_path=training\rfcn_resnet101_coco.config
-
-
+	python train.py --logtostderr \ --train_dir=training/ \ --pipeline_config_path=training\rfcn_resnet101_coco.config
 
 EVAL:
-python eval.py --logtostderr --eval_dir=eval --checkpoint_dir=training --pipeline_config_path=training\rfcn_resnet101_coco.config
+	python eval.py --logtostderr --eval_dir=eval --checkpoint_dir=training --pipeline_config_path=training\rfcn_resnet101_coco.config
 
 TENSORBOARD:
-tensorboard --logdir=training/ --host=127.0.0.1
+	tensorboard --logdir=training/ --host=127.0.0.1
 
 or
 
-python C:\Users\qwert\AppData\Roaming\Python\Python37\site-packages\tensorboard\main.py --logdir=training/ --host=127.0.0.1
+	python C:\Users\qwert\AppData\Roaming\Python\Python37\site-packages\tensorboard\main.py --logdir=training/ --host=127.0.0.1
 
 EXPORT:
-python export_inference_graph.py --input_type image_tensor --pipeline_config_path training/rfcn_resnet101_coco.config --trained_checkpoint_prefix training/model.ckpt-205527 --output_directory inference_graph
+	python export_inference_graph.py --input_type image_tensor --pipeline_config_path training/rfcn_resnet101_coco.config --trained_checkpoint_prefix training/model.ckpt-205527 --output_directory inference_graph
 
 
 
