@@ -12,3 +12,4 @@ pip install --user matplotlib
 pip install --user protobuf==3.11.3
 pip install --user tensorflow-gpu==1.15
 
+pip install git+https://github.com/philferriere/cocoapi.git#egg=pycocotools^&subdirectory=PythonAPI
