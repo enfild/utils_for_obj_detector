@@ -75,7 +75,7 @@ def run_inference(model, category_index, image):
         instance_masks=output_dict.get('detection_masks_reframed', None),
         use_normalized_coordinates=True,
         line_thickness=8)
-    cv2.imshow('object_detection', cv2.resize(image, (800, 600)))
+    cv2.imshow('object_detection', image)
     if cv2.waitKey(25) & 0xFF == ord('q'):
         cap.release()
         cv2.destroyAllWindows()
