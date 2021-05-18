@@ -1,4 +1,4 @@
-
+# find conturs from openCV in out BB
 import os
 import cv2
 import numpy as np
@@ -17,14 +17,11 @@ PATH_TO_CKPT = os.path.join(CWD_PATH,MODEL_NAME,'frozen_inference_graph.pb')
 
 PATH_TO_LABELS = os.path.join(CWD_PATH,'data','object-detection.pbtxt')
 PATH_TO_IMAGE = os.path.join(CWD_PATH,'img')
-print("пути есть")
 NUM_CLASSES = 2
 
-print("Загрузка архитектуры сети начата")
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
-print("Загрузка архитектуры сети закончана линковка")
 # Load the Tensorflow model into memory.
 detection_graph = tf.Graph()
 with detection_graph.as_default():
@@ -35,7 +32,6 @@ with detection_graph.as_default():
         tf.import_graph_def(od_graph_def, name='')
 
     sess = tf.Session(graph=detection_graph)
-print("Загрузка архитектуры сети закончана")
 image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
 detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
 detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
@@ -52,7 +48,6 @@ with os.scandir(PATH_TO_IMAGE) as entries:
         (boxes, scores, classes, num) = sess.run(
             [detection_boxes, detection_scores, detection_classes, num_detections],
             feed_dict={image_tensor: image_expanded})
-        print(datetime.now() - start_time)
         scores=np.squeeze(scores)
         boxes=np.squeeze(boxes)
         classes=np.squeeze(classes)
